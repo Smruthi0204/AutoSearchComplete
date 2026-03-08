@@ -1,0 +1,25 @@
+# Maven build output
+target/
+
+# Sensitive config (keep locally, don't push)
+src/main/resources/application.properties
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Packaged artifacts
+*.jar
+*.war

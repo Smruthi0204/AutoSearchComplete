@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 100px;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .search-container {
+      position: relative;
+      width: 400px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 40px 12px 20px; /* extra space for icon */
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 24px;
+      outline: none;
+    }
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #888;
+      cursor: pointer;
+    }
+    .suggestions {
+      position: absolute;
+      top: 48px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-top: none;
+      background-color: #fff;
+      border-radius: 0 0 12px 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+    .suggestion-item {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .suggestion-item:hover,
+    .suggestion-item.active {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Search Here</h1>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Type to search...">
+    <span class="search-icon" id="searchBtn">🔍</span>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById("searchInput");
+    const suggestionsBox = document.getElementById("suggestions");
+    const searchBtn = document.getElementById("searchBtn");
+    const backendUrl = "http://localhost:8081/api/search";
+
+    let currentIndex = -1; // for keyboard navigation
+    let currentSuggestions = [];
+
+    // Fetch autocomplete suggestions
+    async function fetchSuggestions(query) {
+      if(!query) {
+        suggestionsBox.innerHTML = "";
+        currentSuggestions = [];
+        currentIndex = -1;
+        return;
+      }
+      try {
+        const response = await fetch(`${backendUrl}/autocomplete?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        currentSuggestions = data;
+        displaySuggestions(data);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+      }
+    }
+
+    // Display suggestions
+    function displaySuggestions(suggestions) {
+      suggestionsBox.innerHTML = "";
+      suggestions.forEach((s, index) => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = s;
+        div.onclick = () => selectSuggestion(index);
+        suggestionsBox.appendChild(div);
+      });
+      currentIndex = -1; // reset selection
+    }
+
+    // Save search query
+    async function saveSearch(query) {
+      try {
+        await fetch(`${backendUrl}`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ query })
+        });
+      } catch (err) {
+        console.error("Error saving search:", err);
+      }
+    }
+
+    // Select suggestion by index
+    function selectSuggestion(index) {
+      searchInput.value = currentSuggestions[index];
+      saveSearch(currentSuggestions[index]);
+      suggestionsBox.innerHTML = "";
+      currentIndex = -1;
+    }
+
+    // Handle input
+    searchInput.addEventListener("input", (e) => {
+      fetchSuggestions(e.target.value);
+    });
+
+    // Handle keyboard navigation
+    searchInput.addEventListener("keydown", (e) => {
+      const items = suggestionsBox.querySelectorAll(".suggestion-item");
+      if (items.length === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        currentIndex = (currentIndex + 1) % items.length;
+        updateActiveSuggestion(items);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        currentIndex = (currentIndex - 1 + items.length) % items.length;
+        updateActiveSuggestion(items);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if(currentIndex >= 0) {
+          selectSuggestion(currentIndex);
+        } else if(searchInput.value.trim()) {
+          saveSearch(searchInput.value.trim());
+          suggestionsBox.innerHTML = "";
+        }
+      }
+    });
+
+    // Update highlighted suggestion
+    function updateActiveSuggestion(items) {
+      items.forEach(item => item.classList.remove("active"));
+      if(currentIndex >= 0) {
+        items[currentIndex].classList.add("active");
+      }
+    }
+
+    // Handle click on search icon
+    searchBtn.addEventListener("click", () => {
+      const query = searchInput.value.trim();
+      if(query) {
+        saveSearch(query);
+        suggestionsBox.innerHTML = "";
+      }
+    });
+
+    // Close suggestions if clicked outside
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".search-container")) {
+        suggestionsBox.innerHTML = "";
+        currentIndex = -1;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -154,4 +154,5 @@ The server starts on port 8081.
 curl "http://localhost:8081/api/search/autocomplete?query=sam"
 ```
 
+A simple frontend is included, featuring a real-time search bar with dropdown suggestions, keyboard navigation, and automatic query saving on selection.
 

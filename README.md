@@ -3,7 +3,6 @@
 An autocomplete search system built with Spring Boot and PostgreSQL provides real-time query suggestions as users type. Search terms and their frequencies are stored in PostgreSQL and loaded into an in-memory Trie for efficient prefix-based lookup. A Min-Heap is used to retrieve the top matching queries based on frequency. The system exposes REST APIs through Spring Boot to deliver fast and relevant suggestions.
 
 
----
 
 ##  Features
 
@@ -14,7 +13,6 @@ An autocomplete search system built with Spring Boot and PostgreSQL provides rea
 - Persistent storage with PostgreSQL — search data survives restarts
 - Trie built in-memory at startup from the database for fast lookups
 
----
 
 ##  System Architecture
 
@@ -38,7 +36,6 @@ User Input (query string)
 └─────────────────────┘
 ```
 
----
 
 ## How It Works — Trie + Heap
 
@@ -73,13 +70,13 @@ After collecting all matching phrases from the Trie, a Min-Heap of fixed size k 
 6. Return ranked suggestions to client
 ```
 
----
+
 
 ## Dataset
 
 A synthetic e-commerce search dataset was generated with realistic search phrases and associated frequencies simulating real user behavior.
 
----
+
 
 ##  API Endpoints
 
@@ -100,7 +97,7 @@ GET /api/search/autocomplete?query=sam
 ]
 ```
 
----
+
 
 ### POST `/api/search`
 Records a new search query (used to update frequency counts).
@@ -116,8 +113,6 @@ Records a new search query (used to update frequency counts).
 ```
 200 OK
 ```
-
----
 
 ## Setup & Running Locally
 
